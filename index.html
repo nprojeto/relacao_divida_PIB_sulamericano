@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel Econômico Sul-Americano</title>
+<meta name="description" content="PIB e dívida externa dos 12 países da América do Sul, 2021–2024, com a relação dívida/PIB.">
+<style>[hidden]{display:none!important} img{max-width:100%} body{margin:0}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: painel de uma coluna — controles no topo, ranking do ano, pequenos múltiplos por país, tabela e fontes */
+:root{
+  --bg:#f6f8fa; --surface:#ffffff; --ink:#0e1620; --ink-2:#4a5664; --muted:#7a8592;
+  --line:#dde3ea; --grid:#e9eef3;
+  --y1:#86b6ef; --y2:#5598e7; --y3:#2a78d6; --y4:#1c5cab; /* anos 2021→2024, rampa ordinal */
+  --hl:#1c5cab; --gap-fill:#eef1f4; --pib:#b7d3f6; --pib-edge:#5598e7; --div:#d32f2f; --track:#9dd8ad; --ok:#1c5cab;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-data:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --surface:#1a2129; --ink:#eef2f6; --ink-2:#b4bfcb; --muted:#8792a0;
+  --line:#2c3540; --grid:#232b34;
+  --y1:#184f95; --y2:#256abf; --y3:#3987e5; --y4:#6da7ec; --hl:#6da7ec; --gap-fill:#222a33; --pib:#1f3a5c; --pib-edge:#3987e5; --div:#ef5350; --track:#24603b; --ok:#6da7ec;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --surface:#1a2129; --ink:#eef2f6; --ink-2:#b4bfcb; --muted:#8792a0;
+  --line:#2c3540; --grid:#232b34;
+  --y1:#184f95; --y2:#256abf; --y3:#3987e5; --y4:#6da7ec; --hl:#6da7ec; --gap-fill:#222a33; --pib:#1f3a5c; --pib-edge:#3987e5; --div:#ef5350; --track:#24603b; --ok:#6da7ec;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-family:var(--f-data);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4.4vw,38px);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.lede{color:var(--ink-2);max-width:68ch;margin:4px 0 0}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;
+  background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px}
+.seg button{font:600 14px var(--f-body);color:var(--ink-2);background:transparent;border:0;border-radius:7px;padding:7px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible,.yr button:focus-visible,.toggle:focus-visible{outline:2px solid var(--hl);outline-offset:2px}
+.yr{display:flex;gap:4px;align-items:center}
+.yr span{font-size:13px;color:var(--muted);margin-right:4px}
+.yr button{font:500 13px var(--f-data);border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:7px;padding:6px 9px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.yr button i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.yr button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+.toggle{font:600 13px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:7px;padding:7px 11px;cursor:pointer}
+section{display:flex;flex-direction:column;gap:12px}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px}
+h2{font-family:var(--f-display);font-weight:700;font-size:20px;margin:0;text-wrap:balance}
+.unit{font-family:var(--f-data);font-size:12px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 14px}
+.def{color:var(--ink-2);font-size:14px;margin:0;max-width:80ch}
+/* ranking */
+.rank{display:grid;grid-template-columns:minmax(84px,120px) 1fr;gap:6px 12px;align-items:center}
+.rank .nm{font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .track{position:relative;height:22px;display:flex;align-items:center;gap:8px;min-width:0}
+.rank .bar{height:14px;background:var(--y4);border-radius:0 4px 4px 0;min-width:2px;flex:none}
+.rank .val{font:500 13px var(--f-data);color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rank .na{font:400 12px var(--f-data);color:var(--muted)}
+.rank-foot{font-size:13px;color:var(--muted);margin-top:8px}
+/* small multiples */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 12px 8px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card .cn{font-weight:600;font-size:15px}
+.card .last{font:500 13px var(--f-data);color:var(--ink);font-variant-numeric:tabular-nums}
+.card .chg{font:400 12px var(--f-data);color:var(--muted)}
+.card svg{width:100%;height:auto;display:block}
+.card svg text{font-family:var(--f-data);font-size:10px;fill:var(--muted)}
+.card svg .lbl{fill:var(--ink-2)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font:400 12px var(--f-data);color:var(--ink-2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+/* tabela */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+thead th{font:600 12px var(--f-data);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+td{font-family:var(--f-data);font-size:13px}
+td:first-child{font-family:var(--f-body);font-size:14px}
+td.na{color:var(--muted)}
+tbody tr:last-child td{border-bottom:0}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.note h3{font:700 14px var(--f-display);margin:0 0 4px}
+.note p,.note li{font-size:13.5px;color:var(--ink-2);margin:0}
+.note ul{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:2px}
+.note a{color:var(--hl)}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font:500 12px var(--f-data);padding:6px 8px;border-radius:6px;z-index:20;white-space:nowrap}
+@media (max-width:520px){.rank{grid-template-columns:84px 1fr}.controls{position:static}}
+@media (prefers-reduced-motion:no-preference){.rank .bar{transition:width .35s ease}}
+
+.chart-wrap{overflow-x:auto;margin:0 -4px}
+
+.chart-wrap svg text{font-family:var(--f-data);font-size:11px;fill:var(--muted)}
+.chart-wrap svg .cty{fill:var(--ink-2);font-family:var(--f-body);font-size:12.5px}
+.chart-wrap svg .nd{font-size:10px}
+.chart-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 16px}
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.toc a{font:600 13px var(--f-body);color:var(--ink-2);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:6px 11px}
+.toc a:hover{color:var(--ink);border-color:var(--ink-2)}
+details summary{cursor:pointer;font:600 13px var(--f-body);color:var(--ink-2)}
+details[open] summary{margin-bottom:8px}
+.foot{font-size:13px;color:var(--muted);margin:0}
+
+.analysis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.fact b{font:700 15px var(--f-display)}
+.fact p{margin:0;font-size:14px;color:var(--ink-2)}
+td.rt{font-weight:500}
+
+.how{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;font-size:14px;color:var(--ink-2)}
+.how .sw{display:inline-block;width:34px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+.rows{display:flex;flex-direction:column}
+.crow{display:grid;grid-template-columns:150px 1fr;gap:6px 18px;padding-block:14px;border-top:1px solid var(--grid)}
+.crow:first-child{border-top:0}
+.cname{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cname b{font:700 16px var(--f-display)}
+.cname span{font:400 12px var(--f-data);color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:5px;min-width:0}
+.br{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center}
+.br .yr2{font:500 12px var(--f-data);color:var(--muted)}
+.trk{position:relative;height:20px;min-width:0}
+.trk .pib{position:absolute;left:0;top:0;bottom:0;width:calc(100% / 1.4);background:var(--track);border-radius:4px}
+.trk .p100{position:absolute;top:-3px;bottom:-3px;left:calc(100% / 1.4);border-left:2px dashed var(--muted)}
+.trk .d{position:absolute;left:0;top:0;bottom:0;background:var(--div);border-radius:4px;min-width:3px}
+.trk .t{position:absolute;top:50%;transform:translateY(-50%);font:500 12.5px var(--f-data);white-space:nowrap;color:var(--ink);padding-left:8px}
+.trk .t em{font-style:normal;color:var(--muted);font-weight:400}
+.filter{display:flex;flex-direction:column;gap:8px}
+.fh{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.fh b{font:700 15px var(--f-display)}
+.fh span{font:400 12px var(--f-data);color:var(--muted)}
+.lnk{font:600 13px var(--f-body);color:var(--hl);background:none;border:0;padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:600 13.5px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:6px 12px 6px 10px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.chip::before{content:"";width:14px;height:14px;border-radius:4px;border:1.5px solid var(--muted);box-sizing:border-box}
+.chip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+.chip[aria-pressed="true"]::before{background:var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.2l2.6 2.6L11 4.4' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E") center/12px no-repeat;border-color:var(--ink)}
+.chip:focus-visible,.lnk:focus-visible{outline:2px solid var(--hl);outline-offset:2px}
+.empty{padding:28px 0;text-align:center;color:var(--muted)}
+.trk .t.in{padding-left:0;padding-right:8px;color:#fff}
+.trk .t.in em{color:rgba(255,255,255,.85)}
+.trk .nd{position:absolute;left:8px;top:50%;transform:translateY(-50%);font:400 12px var(--f-data);color:var(--muted)}
+.scaleh{display:grid;grid-template-columns:150px 1fr;gap:18px}
+.scaleh .s{display:grid;grid-template-columns:34px 1fr;gap:10px}
+.scaleh .ax{position:relative;height:18px;font:400 11px var(--f-data);color:var(--muted)}
+.scaleh .ax span{position:absolute;transform:translateX(-50%)}
+@media (max-width:620px){.crow,.scaleh{grid-template-columns:1fr}.scaleh>div:first-child{display:none}.trk .t{font-size:11.5px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">América do Sul · 12 países · 2021–2024</div>
+    <h1>Quanto a dívida externa pesa no PIB</h1>
+    <p class="lede">Cada barra verde é o PIB inteiro do país naquele ano. A parte vermelha é o tamanho da dívida externa comparada a ele. Quanto mais vermelho, mais pesada a dívida.</p>
+  </header>
+
+  <section>
+    <div class="filter" role="group" aria-label="Escolher países">
+      <div class="fh"><b>Países</b><span id="fcount"></span><button type="button" class="lnk" id="f-all">Todos</button><button type="button" class="lnk" id="f-none">Limpar</button></div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="panel">
+      <div class="how" style="margin-bottom:14px">
+        <span><i class="sw" style="background:var(--track)"></i>PIB do ano (100%)</span>
+        <span><i class="sw" style="background:var(--div)"></i>Dívida externa</span>
+        <span><i class="sw" style="border-left:2px dashed var(--muted);width:2px;height:16px;border-radius:0"></i>Linha do PIB inteiro: passar dela = dívida maior que o PIB</span>
+      </div>
+      <div class="scaleh"><div></div><div class="s"><div></div><div class="ax" id="ax"></div></div></div>
+      <div class="rows" id="rows"></div>
+      <p class="foot" style="margin-top:10px">Países em ordem do mais endividado para o menos (último ano disponível). Texto ao lado: % do PIB · valor da dívida.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="chart-head"><h2>Relação dívida / PIB</h2><span class="unit">dívida externa em % do PIB</span></div>
+    <p class="def">Quanto maior o percentual, mais pesada é a dívida em relação ao tamanho da economia. A dívida externa inclui o que devem governo, empresas e bancos.</p>
+    <div class="analysis">
+      <div class="fact"><b>A dívida pesou menos em quase todos</b><p>Entre 2021 e 2024 a relação caiu no Brasil (34% → 28%), Argentina (51% → 38%), Peru (39% → 32%), Colômbia (54% → 48%), Equador (54% → 49%) e Bolívia (33% → 28%). Na maioria, a dívida em dólares ficou quase parada enquanto o PIB cresceu.</p></div>
+      <div class="fact"><b>Paraguai foi na direção contrária</b><p>Único país com alta contínua: de 57% em 2021 para 67% em 2024. A dívida subiu 32% no período, mais rápido que o PIB (12%).</p></div>
+      <div class="fact"><b>Os mais endividados</b><p>Suriname tem a dívida maior que o próprio PIB (117% em 2023). Depois vêm Chile, estável perto de 74%, e Uruguai, que caiu de 80% para 66% entre 2021 e 2023.</p></div>
+      <div class="fact"><b>Tamanho não é peso</b><p>O Brasil tem a maior dívida em valor (US$ 605 bi em 2024), mas um dos menores pesos (28% do PIB). A Guiana tem o menor (15%), porque o PIB triplicou com o petróleo.</p></div>
+    </div>
+    <div class="tbl-wrap"><table id="tbl"></table></div>
+    <p class="foot">— = sem dado. Venezuela não publica dívida externa desde 2020; Suriname e Uruguai ainda sem 2024.</p>
+  </section>
+
+  <section>
+    <h2>Fontes e limitações</h2>
+    <div class="notes">
+      <div class="note"><h3>PIB</h3><p>FMI, World Economic Outlook (indicador NGDPD), US$ correntes. Valores obtidos de uma página que republica o WEO (edição provável: out/2026). O Brasil veio arredondado a US$ 10 bi.</p></div>
+      <div class="note"><h3>Dívida externa</h3><p>Estoque total no fim do ano. Banco Mundial, International Debt Statistics (DT.DOD.DECT.CD) para 9 países; Chile e Uruguai pelos bancos centrais.</p></div>
+      <div class="note"><h3>Dívida / PIB</h3><p>Calculado nesta página: dívida externa ÷ PIB do mesmo ano. As duas séries vêm de fontes diferentes, então trate como aproximação.</p></div>
+    </div>
+  </section>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const DATA = {"pib": {"ARG": {"2021": 486.04, "2022": 633.52, "2023": 654.08, "2024": 637.74}, "BOL": {"2021": 48.23, "2022": 51.33, "2023": 52.72, "2024": 55.28}, "BRA": {"2021": 1670.0, "2022": 1950.0, "2023": 2190.0, "2024": 2190.0}, "CHL": {"2021": 315.59, "2022": 301.14, "2023": 335.91, "2024": 329.2}, "COL": {"2021": 318.52, "2022": 345.63, "2023": 366.9, "2024": 420.5}, "ECU": {"2021": 107.18, "2022": 116.13, "2023": 120.79, "2024": 123.8}, "GUY": {"2021": 8.04, "2022": 14.72, "2023": 16.92, "2024": 24.66}, "PRY": {"2021": 39.94, "2022": 41.84, "2023": 43.14, "2024": 44.74}, "PER": {"2021": 228.71, "2022": 248.22, "2023": 272.67, "2024": 295.33}, "SUR": {"2021": 3.11, "2022": 3.8, "2023": 3.46, "2024": 4.27}, "URY": {"2021": 60.74, "2022": 71.25, "2023": 79.21, "2024": 82.32}, "VEN": {"2021": 39.14, "2022": 79.52, "2023": 76.76, "2024": 103.71}}, "divida": {"ARG": {"2021": 246.1, "2022": 249.0, "2023": 252.8, "2024": 242.357}, "BOL": {"2021": 16.03, "2022": 15.93, "2023": 16.31, "2024": 15.718}, "BRA": {"2021": 571.19, "2022": 579.26, "2023": 607.39, "2024": 605.464}, "CHL": {"2021": 235.405, "2022": 231.526, "2023": 243.345, "2024": 244.989}, "COL": {"2021": 172.16, "2022": 184.4, "2023": 197.51, "2024": 201.764}, "ECU": {"2021": 58.12, "2022": 60.68, "2023": 60.56, "2024": 60.365}, "GUY": {"2021": 1.89, "2022": 2.07, "2023": 2.95, "2024": 3.682}, "PRY": {"2021": 22.66, "2022": 25.24, "2023": 26.61, "2024": 29.963}, "PER": {"2021": 88.98, "2022": 91.69, "2023": 93.99, "2024": 93.269}, "SUR": {"2021": 4.14, "2022": 4.19, "2023": 4.05, "2024": null}, "URY": {"2021": 48.4486, "2022": 53.3194, "2023": 51.9053, "2024": null}, "VEN": {"2021": null, "2022": null, "2023": null, "2024": null}}};
+const YEARS=["2021","2022","2023","2024"];
+const NAMES={ARG:"Argentina",BOL:"Bolívia",BRA:"Brasil",CHL:"Chile",COL:"Colômbia",ECU:"Equador",GUY:"Guiana",PRY:"Paraguai",PER:"Peru",SUR:"Suriname",URY:"Uruguai",VEN:"Venezuela"};
+const ISO=Object.keys(NAMES);
+const ratio=(c,y)=>{const d=DATA.divida[c][y],g=DATA.pib[c][y];return (d!=null&&g)?d/g*100:null};
+const f1=v=>v.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
+const fb=v=>v==null?"—":v>=1000?v.toLocaleString("pt-BR",{maximumFractionDigits:0}):f1(v);
+const fu=v=>v>=1000?(v/1000).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+" tri":(v>=10?Math.round(v).toLocaleString("pt-BR"):f1(v))+" bi";
+const fp=v=>v==null?"—":v.toLocaleString("pt-BR",{maximumFractionDigits:0})+"%";
+const MAX=140;
+let SEL=new Set(ISO);
+try{const s=JSON.parse(localStorage.getItem("sa-paises")||"null");if(Array.isArray(s))SEL=new Set(s.filter(c=>NAMES[c]));}catch(e){}
+const saveSel=()=>{try{localStorage.setItem("sa-paises",JSON.stringify([...SEL]))}catch(e){}};
+const chipsEl=document.getElementById("chips");
+[...ISO].sort((a,b)=>NAMES[a].localeCompare(NAMES[b],"pt")).forEach(c=>{const b=document.createElement("button");b.type="button";b.className="chip";b.id="chip-"+c;b.textContent=NAMES[c];b.onclick=()=>{SEL.has(c)?SEL.delete(c):SEL.add(c);saveSel();render()};chipsEl.appendChild(b)});
+document.getElementById("f-all").onclick=()=>{SEL=new Set(ISO);saveSel();render()};
+document.getElementById("f-none").onclick=()=>{SEL=new Set();saveSel();render()};
+const tip=document.getElementById("tip");
+function showTip(e,t){tip.textContent=t;tip.hidden=false;const x=Math.min(e.clientX+12,innerWidth-tip.offsetWidth-8);tip.style.left=Math.max(8,x)+"px";tip.style.top=(e.clientY-36)+"px";}
+function hideTip(){tip.hidden=true}
+function render(){
+  document.getElementById("ax").innerHTML=[0,25,50,75,100,125].map(t=>`<span style="left:${t/MAX*100}%">${t}%</span>`).join("");
+  const last=c=>{for(let i=3;i>=0;i--){const r=ratio(c,YEARS[i]);if(r!=null)return r}return -1};
+  ISO.forEach(c=>document.getElementById("chip-"+c).setAttribute("aria-pressed",SEL.has(c)));
+  document.getElementById("fcount").textContent=`${SEL.size} de ${ISO.length} selecionados`;
+  document.querySelectorAll("#tbl tbody tr").forEach(tr=>tr.hidden=!SEL.has(tr.dataset.c));
+  const order=[...ISO].filter(c=>SEL.has(c)).sort((a,b)=>last(b)-last(a));
+  if(!order.length){document.getElementById("rows").innerHTML=`<div class="empty">Nenhum país selecionado. Marque um ou mais países acima.</div>`;return;}
+  document.getElementById("rows").innerHTML=order.map(c=>{
+    const g24=DATA.pib[c]["2024"];
+    return `<div class="crow"><div class="cname"><b>${NAMES[c]}</b><span>PIB 2024: US$ ${fu(g24)}</span></div><div class="bars">${YEARS.map(yr=>{
+      const r=ratio(c,yr),d=DATA.divida[c][yr],g=DATA.pib[c][yr];
+      const t=`${NAMES[c]} ${yr} · PIB US$ ${fu(g)} · dívida ${d==null?"sem dado":"US$ "+fu(d)+" = "+fp(r)+" do PIB"}`;
+      if(r==null)return `<div class="br"><span class="yr2">${yr}</span><div class="trk" data-t="${t}"><div class="pib"></div><div class="p100"></div><span class="nd">dívida sem dado</span></div></div>`;
+      const w=Math.min(r,MAX)/MAX*100;
+      return `<div class="br"><span class="yr2">${yr}</span><div class="trk" data-t="${t}"><div class="pib"></div><div class="d" style="width:${w}%"></div><div class="p100"></div><span class="t${w>60?" in":""}" style="${w>60?`right:${100-w}%`:`left:${w}%`}"><b>${fp(r)}</b> <em>· US$ ${fu(d)}</em></span></div></div>`;
+    }).join("")}</div></div>`;
+  }).join("");
+  document.querySelectorAll(".trk[data-t]").forEach(el=>{el.onmousemove=e=>showTip(e,el.dataset.t);el.onmouseleave=hideTip});
+}
+const ord=[...ISO].sort((a,b)=>(ratio(b,"2023")??-1)-(ratio(a,"2023")??-1));
+document.getElementById("tbl").innerHTML=`<thead><tr><th>País</th>${YEARS.map(y=>`<th>${y}</th>`).join("")}<th>Variação</th></tr></thead><tbody>${ord.map(c=>{const v=YEARS.map(y=>ratio(c,y));const f=v.find(x=>x!=null),l=[...v].reverse().find(x=>x!=null);const dd=(f!=null&&l!=null&&f!==l)?Math.round(l-f):null;const ch=dd==null?"—":(dd>0?"+":"")+dd+" p.p.";return `<tr data-c="${c}"><td>${NAMES[c]}</td>${v.map(x=>`<td class="${x==null?"na":"rt"}">${fp(x)}</td>`).join("")}<td>${ch}</td></tr>`}).join("")}</tbody>`;
+render();
+</script>
+</body>
+</html>
